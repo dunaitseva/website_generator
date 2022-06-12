@@ -8,12 +8,15 @@ set(TARGET_NAME ${PROJECT_NAME})
 set(INCLUDE project/include)
 set(SOURCE project/src)
 
-#set(LIB_NAME WebsiteGenerator)
-#add_library(${LIB_NAME})
+set(LIB_NAME WebsiteGeneratorLib)
+add_library(
+        ${LIB_NAME}
+        ${SOURCE}/FSEntryFinder.cpp
+)
+target_include_directories(${LIB_NAME} PUBLIC ${INCLUDE})
 
-#add_executable(${TARGET_NAME} project/main.cpp)
-#target_link_libraries(${TARGET_NAME} ${LIB_NAME})
-#target_include_directories(${TARGET_NAME} PUBLIC ${INCLUDE})
+add_executable(${TARGET_NAME} project/main.cpp)
+target_link_libraries(${TARGET_NAME} ${LIB_NAME})
 
 option(TEST "Enable tests build" OFF)
 if (TEST)
@@ -37,7 +40,7 @@ if (TEST)
     enable_testing()
     include(GoogleTest)
 
-    file(GLOB TestsSrc "${TEST_DIR}/*.cpp")
+    file(GLOB TestsSrc "${TEST_DIR}/*Tests.cpp")
     foreach (file ${TestsSrc})
         message(${file})
         get_filename_component(target_test ${file} NAME_WE)

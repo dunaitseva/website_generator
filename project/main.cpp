@@ -1,3 +1,8 @@
-//
-// Created by shmalens on 12/06/22.
-//
+#include <iostream>
+
+#include "FSEntryFinder.hpp"
+
+int main() {
+      ffinder::RRegualarFileFinder finder("..");
+      finder.CreateFilesList();
+}
