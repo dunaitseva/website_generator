@@ -12,4 +12,4 @@ jobs:
       - name: Run linter check script
         run: |
           pip install cpplint
-          ./tools/linters-check.sh
+          ./tools/linter-checks.sh
