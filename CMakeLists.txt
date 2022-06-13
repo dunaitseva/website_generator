@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(WebsiteGenerator)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic -Werror")
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic -Werror")
 
 set(TARGET_NAME ${PROJECT_NAME})
 set(INCLUDE project/include)
@@ -12,15 +12,17 @@ set(LIB_NAME WebsiteGeneratorLib)
 add_library(
         ${LIB_NAME}
         ${SOURCE}/FSEntryFinder.cpp
+        ${SOURCE}/Translator.cpp
+        ${SOURCE}/Generator.cpp
 )
 target_include_directories(${LIB_NAME} PUBLIC ${INCLUDE})
 
 add_executable(${TARGET_NAME} project/main.cpp)
-target_link_libraries(${TARGET_NAME} ${LIB_NAME})
+target_link_libraries(${TARGET_NAME} PUBLIC ${LIB_NAME})
 
 option(TEST "Enable tests build" OFF)
 if (TEST)
-    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD 20)
     set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS}")
     set(TEST_DIR tests)
 

@@ -1,12 +1,12 @@
-#ifndef WEBSITEGENERATOR_FILEFINDER_H
-#define WEBSITEGENERATOR_FILEFINDER_H
+#ifndef PROJECT_INCLUDE_FSENTRYFINDER_HPP_
+#define PROJECT_INCLUDE_FSENTRYFINDER_HPP_
 
 #include <exception>
 #include <filesystem>
+#include <memory>
 #include <set>
 #include <string>
 #include <string_view>
-#include <system_error>
 
 namespace ffinder {
     namespace fs = std::filesystem;
@@ -17,23 +17,23 @@ namespace ffinder {
 
     namespace exceptions {
         class FinderException : std::exception {
-        public:
+         public:
             const char *what() const noexcept override { return "Finder exception occur"; }
         };
 
         class DirectoryNotFound : FinderException {
-        public:
+         public:
             const char *what() const noexcept override { return "Specified directory not found"; }
         };
 
         class NotDirectory : FinderException {
-        public:
+         public:
             const char *what() const noexcept override { return "Specified filesystem object is not a directory"; }
         };
     }  // namespace exceptions
 
     using FileType = PathType;
-    using FileList = std::set<FileType>;
+    using FSEntryList = std::set<FileType>;
 
     /**
      * Basic class, that provides an interface for creating classes that return a list of
@@ -46,8 +46,10 @@ namespace ffinder {
      */
     template <typename Iter>
     class BasicFSFinder {
-    public:
+     public:
         using IteratorType = Iter;
+        using FSFinderShPtr = std::shared_ptr<BasicFSFinder>;
+        using FSFinderWkPtr = std::weak_ptr<BasicFSFinder>;
 
         BasicFSFinder() = default;
 
@@ -60,9 +62,9 @@ namespace ffinder {
          *
          * @note CreateFilesList associated with File structure, so it return the list of ones.
          */
-        virtual FileList CreateFilesList() const = 0;
+        virtual FSEntryList CreateFilesList() const = 0;
 
-    protected:
+     protected:
         PathType m_dir_name;
     };
 
@@ -82,7 +84,7 @@ namespace ffinder {
      */
     template <typename Iter>
     class RegDirBasicFSFinder : public BasicFSFinder<Iter> {
-    public:
+     public:
         using IteratorType = Iter;
         static constexpr std::string_view DefaultPath = ".";
 
@@ -94,12 +96,12 @@ namespace ffinder {
          * Ensures that it returns a list consisting of only regular files and directories.
          * @return List of
          */
-        FileList CreateFilesList() const override;
+        FSEntryList CreateFilesList() const override;
     };
 
     template <typename Iter>
-    FileList RegDirBasicFSFinder<Iter>::CreateFilesList() const {
-        FileList regular_files_list;
+    FSEntryList RegDirBasicFSFinder<Iter>::CreateFilesList() const {
+        FSEntryList regular_files_list;
         // Iterate over directory and find all regular files and directories.
         for (const auto &path_entry : IteratorType{BasicFSFinder<Iter>::m_dir_name}) {
             if (IsRegular(path_entry) || IsDirectory(path_entry)) {
@@ -113,4 +115,4 @@ namespace ffinder {
     using RRegualarFileFinder = RegDirBasicFSFinder<fs::recursive_directory_iterator>;
 }  // namespace ffinder
 
-#endif  // WEBSITEGENERATOR_FILEFINDER_H
+#endif  // PROJECT_INCLUDE_FSENTRYFINDER_HPP_
