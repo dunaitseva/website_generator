@@ -1,15 +1,17 @@
-name: Linters piplene
+name: Build pipline
 on: [ push ]
 defaults:
   run:
     shell: bash
 jobs:
-  Linters:
-    name: Linters check code requrements
+  Building:
+    name: Build WebsiteGenerator
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Run format check script
+      - name: Building consistent
         run: |
-          pip install cpplint
-          ./scripts/linter-checks.sh
+          ./scripts/build.sh
+          cd build
+          make WebsiteGenerator
+          cd ..
