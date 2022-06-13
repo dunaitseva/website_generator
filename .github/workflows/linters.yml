@@ -12,4 +12,4 @@ jobs:
       - name: Run format check script
         run: |
           pip install cpplint
-          ./scripts/linters-check.sh
+          ./tools/linters-check.sh
