@@ -11,9 +11,11 @@ jobs:
       - uses: actions/checkout@v2
       - name: Build tests
         run: |
+          sudo apt update
+          sudo apt install valgrind
           ./tools/build.sh -t
           cd build
           make
-      - name: Run generator tests set
+      - name: Run generator tests set under valgrind
         run: |
           ./tools/valgrind-check.sh
