@@ -11,6 +11,7 @@ class GemtextGeneratorTests : public ::testing::Test {
     ffinder::FSEntityList expected = {
             "../tests/GeneratorTestsData/output/markup.html",
             "../tests/GeneratorTestsData/output/ord_file",
+            "../tests/GeneratorTestsData/output/.gitkeep",
             "../tests/GeneratorTestsData/output/subdir/markup2.html",
     };
 
