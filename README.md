@@ -1,7 +1,5 @@
 # `website generator`
 
----
-
 ![build](https://github.com/dunaitseva/website_generator/actions/workflows/build.yml/badge.svg)
 ![tests](https://github.com/dunaitseva/website_generator/actions/workflows/tests.yml/badge.svg)
 ![linters](https://github.com/dunaitseva/website_generator/actions/workflows/linters.yml/badge.svg)
