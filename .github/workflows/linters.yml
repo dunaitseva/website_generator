@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Run format check script
+      - name: Run linter check script
         run: |
           pip install cpplint
           ./tools/linters-check.sh

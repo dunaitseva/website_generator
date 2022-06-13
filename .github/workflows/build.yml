@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Building consistent
+      - name: Building gem to html generator
         run: |
           ./tools/build.sh
           cd build

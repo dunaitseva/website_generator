@@ -14,9 +14,6 @@ jobs:
           ./tools/build.sh -t
           cd build
           make
-      - name: Run matrix tests set
+      - name: Run generator tests set
         run: |
-          cd build
-          ./build/FSEntryFinderTests
-          ./build/TranslatorTests
-          ./build/GeneratorTests
+          ./tools/valgrind-check.sh
