@@ -30,8 +30,6 @@ for dir in ${DIRS[*]}; do
 
     cpplint --filter=$cpplint_ignore $file
     check-ret-code $file "cpplint" ret_code
-    cppcheck --enable=$CPPCHECK_CHECKS --error-exitcode=1 -I project/include --suppress=missingIncludeSystem $file
-    check-ret-code $file "cppcheck" ret_code
 
   done
 done

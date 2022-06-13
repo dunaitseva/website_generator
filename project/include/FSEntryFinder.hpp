@@ -7,6 +7,7 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <utility>
 
 namespace ffinder {
     namespace fs = std::filesystem;
@@ -33,7 +34,7 @@ namespace ffinder {
     }  // namespace exceptions
 
     using FileType = PathType;
-    using FSEntryList = std::set<FileType>;
+    using FSEntityList = std::set<FileType>;
 
     /**
      * Basic class, that provides an interface for creating classes that return a list of
@@ -51,30 +52,31 @@ namespace ffinder {
         using FSFinderShPtr = std::shared_ptr<BasicFSFinder>;
         using FSFinderWkPtr = std::weak_ptr<BasicFSFinder>;
 
-        BasicFSFinder() = default;
+        static constexpr std::string_view DefaultPath = ".";
 
-        explicit BasicFSFinder(const PathType &dir_name);
+        BasicFSFinder() = default;
 
         virtual ~BasicFSFinder() = default;
 
         /**
-         * @return List of paths to files
+         * Iterate over directory and creates list of files.
          *
+         * @paragraph dir_name Target directory.
+         *
+         * @return List of paths to files
          * @note CreateFilesList associated with File structure, so it return the list of ones.
          */
-        virtual FSEntryList CreateFilesList() const = 0;
-
-     protected:
-        PathType m_dir_name;
+        virtual FSEntityList CreateFilesList(const PathType &dir_name) const = 0;
+        static void CheckExistence(const PathType &dir_name);
     };
 
     template <typename Iter>
-    BasicFSFinder<Iter>::BasicFSFinder(const PathType &dir_name) : m_dir_name(dir_name) {
-        if (!fs::exists(m_dir_name)) {
+    void BasicFSFinder<Iter>::CheckExistence(const PathType &dir_name) {
+        if (!fs::exists(dir_name)) {
             throw exceptions::DirectoryNotFound();
         }
 
-        if (!fs::is_directory(m_dir_name)) {
+        if (!fs::is_directory(dir_name)) {
             throw exceptions::NotDirectory();
         }
     }
@@ -83,36 +85,49 @@ namespace ffinder {
      * In fact, it is the BasicFSFinder for searching regular files and directories.
      */
     template <typename Iter>
-    class RegDirBasicFSFinder : public BasicFSFinder<Iter> {
+    class RegularBasicFSFinder : public BasicFSFinder<Iter> {
      public:
         using IteratorType = Iter;
         static constexpr std::string_view DefaultPath = ".";
 
-        RegDirBasicFSFinder() : BasicFSFinder<Iter>(DefaultPath) {}
-
-        explicit RegDirBasicFSFinder(const PathType &dir_name) : BasicFSFinder<Iter>(dir_name) {}
+        RegularBasicFSFinder() = default;
 
         /**
          * Ensures that it returns a list consisting of only regular files and directories.
          * @return List of
          */
-        FSEntryList CreateFilesList() const override;
+        FSEntityList CreateFilesList(const PathType &dir_name) const override;
     };
 
     template <typename Iter>
-    FSEntryList RegDirBasicFSFinder<Iter>::CreateFilesList() const {
-        FSEntryList regular_files_list;
+    FSEntityList RegularBasicFSFinder<Iter>::CreateFilesList(const PathType &dir_name) const {
+        BasicFSFinder<Iter>::CheckExistence(dir_name);
+        FSEntityList regular_files_list;
         // Iterate over directory and find all regular files and directories.
-        for (const auto &path_entry : IteratorType{BasicFSFinder<Iter>::m_dir_name}) {
-            if (IsRegular(path_entry) || IsDirectory(path_entry)) {
-                regular_files_list.emplace(fs::absolute(path_entry));
+        for (const auto &path_entry : IteratorType{dir_name}) {
+            if (IsRegular(path_entry)) {
+                //                regular_files_list.emplace(fs::absolute(path_entry));
+                regular_files_list.emplace(path_entry);
             }
         }
         return regular_files_list;
     }
 
-    using RegualarFileFinder = RegDirBasicFSFinder<fs::directory_iterator>;
-    using RRegualarFileFinder = RegDirBasicFSFinder<fs::recursive_directory_iterator>;
+    using RegualrFileFinder = RegularBasicFSFinder<fs::directory_iterator>;
+    using RRegularFileFinder = RegularBasicFSFinder<fs::recursive_directory_iterator>;
+
+    /**
+     * Creates a pointer to finder specified object.
+     * @tparam FinderType Finder type.
+     * @tparam Iter Directory iterator type.
+     * @tparam Args Finder constructor arguments types.
+     * @param args Finder constructor arguments.
+     * @return Pointer to finder.
+     */
+    template <typename FinderType, typename Iter = typename FinderType::IteratorType, typename... Args>
+    typename BasicFSFinder<Iter>::FSFinderShPtr CreateFinder(Args &&...args) {
+        return std::make_unique<FinderType>(std::forward<Args>(args)...);
+    }
 }  // namespace ffinder
 
 #endif  // PROJECT_INCLUDE_FSENTRYFINDER_HPP_

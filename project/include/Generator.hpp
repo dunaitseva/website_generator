@@ -2,6 +2,9 @@
 #define PROJECT_INCLUDE_GENERATOR_HPP_
 
 #include <exception>
+#include <filesystem>
+#include <fstream>
+#include <string_view>
 
 #include "FSEntryFinder.hpp"
 #include "Translator.hpp"
@@ -9,33 +12,45 @@
 namespace generator {
     namespace exceptions {
         class GeneratorError : std::exception {
+         public:
             const char *what() const noexcept override { return "GeneratorError occur."; }
         };
 
         class DirNotExistError : GeneratorError {
+         public:
             const char *what() const noexcept override { return "Passed directory does not exist."; }
+        };
+
+        class ErrorFileOpen : GeneratorError {
+         public:
+            const char *what() const noexcept override { return "ErrorFileOpen occur."; }
+
+         private:
+            std::string_view m_file_name;
+            std::string_view message;
         };
     }  // namespace exceptions
 
-    class BasicGenerator {
+    class BasicWebsiteGenerator {
      public:
-        BasicGenerator(const ffinder::PathType &input_dir, const ffinder::PathType &output_dir);
+        using DirectoryIter = std::filesystem::recursive_directory_iterator;
+        using FSFinderPtrType = ffinder::BasicFSFinder<DirectoryIter>::FSFinderShPtr;
+
+        BasicWebsiteGenerator() = default;
+
+        explicit BasicWebsiteGenerator(const FSFinderPtrType &finder) : m_finder(finder) {}
 
         /**
-         * Iterates over all entities in the directory and generates entities in the output directory.
+         * Iterates over all entities in the input directory and generates entities in the output directory.
          * The result of generating a file depends on which translator the file was translated with.
          * The choice of translator depends on the type of generator and is set in the virtual function
          * CreateTranslatorByExtension.
          */
-        void Generate();
+        virtual void Generate(const ffinder::PathType &input_dir, const ffinder::PathType &output_dir) = 0;
 
-        /**
-         * Load input directory entries.
-         * @param finder Finder for files in a directory
-         * @param Iter Directory iterator type
-         */
-        template <class Iter>
-        void LoadInputDirectory(const ffinder::BasicFSFinder<Iter> &finder);
+        void ResetFinder(const FSFinderPtrType &finder) { m_finder = finder; }
+
+        virtual ~BasicWebsiteGenerator() = default;
 
      protected:
         /**
@@ -43,12 +58,36 @@ namespace generator {
          * @param file Path to file.
          * @return Translator
          */
-        virtual BasicTranslator::TranslatorShPtr CreateTranslator(const ffinder::PathType &file) = 0;
+        virtual BasicTranslator::TranslatorShPtr GetTranslator(const ffinder::PathType &file) = 0;
+
+        /**
+         * Load input directory entries. Accessor to generator's finder.
+         * @param input_dir Directory, which entities you want to collect
+         */
+        ffinder::FSEntityList LoadInputDirectory(const ffinder::PathType &input_dir) const;
+
+        static bool IsExists(const ffinder::PathType &path) { return std::filesystem::exists(path); }
 
      private:
-        ffinder::PathType m_input_dir;
-        ffinder::PathType m_output_dir;
-        ffinder::FSEntryList m_entries_list;
+        FSFinderPtrType m_finder;
+    };
+
+    class GemtextGenerator : public BasicWebsiteGenerator {
+     public:
+        static constexpr std::string_view GEM_EXT = ".gmi";
+        static constexpr std::string_view HTML_EXT = ".html";
+
+        GemtextGenerator() = default;
+
+        explicit GemtextGenerator(const FSFinderPtrType &finder) : BasicWebsiteGenerator(finder) {}
+
+        void Generate(const ffinder::PathType &input_dir, const ffinder::PathType &output_dir) override;
+
+     protected:
+        BasicTranslator::TranslatorShPtr GetTranslator(const ffinder::PathType &file) override;
+
+     private:
+        static void CheckStreams(const std::ifstream &ifs, const std::ofstream &ofs);
     };
 }  // namespace generator
 

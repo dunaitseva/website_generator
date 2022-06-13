@@ -17,32 +17,34 @@ class RegDirFinderTests : public ::testing::Test {
 
     static constexpr std::string_view valid_path = "../tests/FSEntryFinderTestData";
 
-    ffinder::FSEntryList expected_list;
+    ffinder::FSEntityList expected_list;
 
     void SetUp() {
-        expected_list.emplace(std::filesystem::absolute(file1));
-        expected_list.emplace(std::filesystem::absolute(file2));
-        expected_list.emplace(std::filesystem::absolute(file3));
-        expected_list.emplace(std::filesystem::absolute(file4));
-        expected_list.emplace(std::filesystem::absolute(dir1));
-        expected_list.emplace(std::filesystem::absolute(dir2));
-        expected_list.emplace(std::filesystem::absolute(dirdir1));
+        expected_list.emplace(file1);
+        expected_list.emplace(file2);
+        expected_list.emplace(file3);
+        expected_list.emplace(file4);
     }
 };
 
-TEST_F(RegDirFinderTests, ValidDirectory) { ASSERT_NO_THROW(ffinder::RRegualarFileFinder finder(valid_path)); }
+TEST_F(RegDirFinderTests, ValidDirectory) {
+    ffinder::RRegularFileFinder finder;
+    ASSERT_NO_THROW(finder.CreateFilesList(valid_path));
+}
 
 TEST_F(RegDirFinderTests, NotExistDir) {
-    ASSERT_THROW(ffinder::RRegualarFileFinder finder("valid_path"), ffinder::exceptions::DirectoryNotFound);
+    ffinder::RRegularFileFinder finder;
+    ASSERT_THROW(finder.CreateFilesList("valid_path"), ffinder::exceptions::DirectoryNotFound);
 }
 
 TEST_F(RegDirFinderTests, NotDirectory) {
-    ASSERT_THROW(ffinder::RRegualarFileFinder finder(file1), ffinder::exceptions::NotDirectory);
+    ffinder::RRegularFileFinder finder;
+    ASSERT_THROW(finder.CreateFilesList(file1), ffinder::exceptions::NotDirectory);
 }
 
 TEST_F(RegDirFinderTests, DirectoryRecursiveTraverse) {
-    ffinder::RRegualarFileFinder finder(valid_path);
-    ffinder::FSEntryList result_list = finder.CreateFilesList();
+    ffinder::RRegularFileFinder finder;
+    ffinder::FSEntityList result_list = finder.CreateFilesList(valid_path);
     bool verdict = (result_list == expected_list);
     ASSERT_TRUE(verdict);
 }

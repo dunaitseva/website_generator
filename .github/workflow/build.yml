@@ -1,0 +1,17 @@
+name: Build pipline
+on: [ push ]
+defaults:
+  run:
+    shell: bash
+jobs:
+  Building:
+    name: Build WebsiteGenerator
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Building consistent
+        run: |
+          ./scripts/build.sh
+          cd build
+          make WebsiteGenerator
+          cd ..

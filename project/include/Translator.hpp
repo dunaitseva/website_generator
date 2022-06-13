@@ -77,8 +77,6 @@ namespace generator {
         virtual void Translate(IStreamType &is, OStreamType &os) = 0;
 
         virtual ~BasicTranslator() = default;
-
-     protected:
     };
 
     /**

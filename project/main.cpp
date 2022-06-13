@@ -2,29 +2,40 @@
 #include <iostream>
 #include <string_view>
 
-#include "Translator.hpp"
+#include "FSEntryFinder.hpp"
+#include "Generator.hpp"
 
-constexpr std::string_view file = "../tmp/some.gem";
-constexpr std::string_view ofile = "../tmp/some.html";
+constexpr size_t EXPECTED_ARGS = 3;
+constexpr size_t INPUT_DIR_ARG = 1;
+constexpr size_t OUTPUT_DIR_ARG = 2;
 
-int main() {
-    namespace gen = generator;
+void ShowUsage(std::ostream &os) {
+    os << "Usage:\n";
+    os << "Please enter two arguments. The first argument is the path to the input directory."
+          "It should contain the files from which the site structure will be generated (The"
+          ".gmi files will be converted to html). The second argument is the output directory"
+          "where the site structure with its sources will be placed.\n";
+}
 
-    std::ifstream ifs;
-    ifs.open(file.data());
-    if (!ifs.is_open()) {
-        std::cerr << "ERROR" << std::endl;
+int main(int argc, char *argv[]) {
+    if (argc != EXPECTED_ARGS) {
+        std::cerr << "Error. To few arguments\n";
+        ShowUsage(std::cerr);
         return EXIT_FAILURE;
     }
 
-    std::ofstream ofs;
-    ofs.open(ofile.data(), std::ios::trunc);
-    if (!ofs.is_open()) {
-        std::cerr << "ERROR" << std::endl;
-        return EXIT_FAILURE;
+    auto finder = ffinder::CreateFinder<ffinder::RRegularFileFinder>();
+    generator::GemtextGenerator generator(finder);
+
+    try {
+        generator.Generate(argv[INPUT_DIR_ARG], argv[OUTPUT_DIR_ARG]);
+    } catch (const generator::exceptions::DirNotExistError &ex) {
+        std::cerr << "Passed wrong directory paths.\n";
+    } catch (const generator::exceptions::ErrorFileOpen &ex) {
+        std::cerr << "Generation failed. File access error.\n";
+    } catch (const generator::exceptions::GemtextFormatError &ex) {
+        std::cerr << "Translation error occur. Check your files syntax.\n";
     }
 
-    gen::BasicTranslator::TranslatorShPtr translator = gen::CreateTranslator<gen::GemToHTMLTranslator>();
-    translator->Translate(ifs, ofs);
     return EXIT_SUCCESS;
 }

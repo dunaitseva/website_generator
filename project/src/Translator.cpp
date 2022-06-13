@@ -27,7 +27,6 @@ namespace generator {
             // clang-format on
             return {line.begin() + i, line.end()};
         }
-
     }  // namespace
 
     void DefaultTranslator::Translate(IStreamType &is, OStreamType &os) {
